@@ -39,7 +39,6 @@ export default {
     timeline: 'Publication year',
     rights: '© mlibrary. All rights reserved.',
     social: 'FB / IG',
-    more: 'More',
   },
   footer: {
     blurb: 'A growing archive of books, stories and voices, open to every reader.',

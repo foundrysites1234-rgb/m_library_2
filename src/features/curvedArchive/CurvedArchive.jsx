@@ -93,15 +93,6 @@ export function CurvedArchive() {
     navigate(`/contact?topic=reserve&book=${encodeURIComponent(id)}`);
   };
 
-  const handleMoreClick = () => {
-    const reduced =
-      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const footer = document.querySelector('.hero-shell > footer.site-footer');
-    if (footer) {
-      footer.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
-    }
-  };
-
   const handleFooterNavigate = useCallback(
     (to) => {
       if (to === '/') {
@@ -219,15 +210,6 @@ export function CurvedArchive() {
           </span>
         )}
       </footer>
-
-      <button
-        type="button"
-        className="box lbl ca-more-cue"
-        onClick={handleMoreClick}
-      >
-        <span>{t.shelf.more}</span>
-        <span aria-hidden="true">↓</span>
-      </button>
 
       <div
         className="ca-detail"

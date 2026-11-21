@@ -60,7 +60,6 @@ export function createCurvedArchive(container, options) {
   const timelineEl = container.querySelector('.ca-timeline');
   const tlDotEl = container.querySelector('.ca-tl-dot');
   const footEl = container.querySelector('.ca-foot');
-  const moreCueEl = container.querySelector('.ca-more-cue');
 
   const titleMask = container.querySelector('[data-ca-mask="title"]');
   const subMask = container.querySelector('[data-ca-mask="sub"]');
@@ -80,7 +79,7 @@ export function createCurvedArchive(container, options) {
   const posterImageEl = container.querySelector('[data-ca-poster-image]');
   const blobEls = Array.from(container.querySelectorAll('[data-ca-blob]'));
 
-  const bgControls = [shelfEl, playRingEl, prevBtn, nextBtn, timelineEl, footEl, moreCueEl].filter(Boolean);
+  const bgControls = [shelfEl, playRingEl, prevBtn, nextBtn, timelineEl, footEl].filter(Boolean);
 
   if (detailEl) {
     detailEl.inert = true;
@@ -786,7 +785,7 @@ export function createCurvedArchive(container, options) {
   const enterBtn = () => setCursorMode('btn');
   const leaveBtn = () => setCursorMode('default');
 
-  const btnElements = [prevBtn, nextBtn, playRingEl, timelineEl, moreCueEl, detailCloseBtn, detailReserveEl].filter(Boolean);
+  const btnElements = [prevBtn, nextBtn, playRingEl, timelineEl, detailCloseBtn, detailReserveEl].filter(Boolean);
   btnElements.forEach((el) => {
     el.addEventListener('pointerenter', enterBtn);
     el.addEventListener('pointerleave', leaveBtn);

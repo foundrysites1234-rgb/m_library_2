@@ -59,7 +59,6 @@ export function createFlatShelf(container, options) {
   const prevBtn = container.querySelector('.fs-arrow-prev');
   const nextBtn = container.querySelector('.fs-arrow-next');
   const footEl = container.querySelector('.fs-foot');
-  const moreCueEl = container.querySelector('.fs-more-cue');
   const tabIndicator = container.querySelector('.fs-tab-indicator');
   const tabBtns = Array.from(container.querySelectorAll('.fs-tab'));
 
@@ -81,7 +80,7 @@ export function createFlatShelf(container, options) {
   const posterImageEl = container.querySelector('[data-fs-poster-image]');
   const blobEls = Array.from(container.querySelectorAll('[data-fs-blob]'));
 
-  const bgControls = [tabsEl, shelfEl, playRingEl, prevBtn, nextBtn, footEl, moreCueEl].filter(Boolean);
+  const bgControls = [tabsEl, shelfEl, playRingEl, prevBtn, nextBtn, footEl].filter(Boolean);
 
   if (detailEl) {
     detailEl.inert = true;
@@ -794,7 +793,7 @@ export function createFlatShelf(container, options) {
   const enterBtn = () => setCursorMode('btn');
   const leaveBtn = () => setCursorMode('default');
 
-  const btnElements = [prevBtn, nextBtn, playRingEl, moreCueEl, detailCloseBtn, detailReserveEl, ...tabBtns].filter(Boolean);
+  const btnElements = [prevBtn, nextBtn, playRingEl, detailCloseBtn, detailReserveEl, ...tabBtns].filter(Boolean);
   btnElements.forEach((el) => {
     el.addEventListener('pointerenter', enterBtn);
     el.addEventListener('pointerleave', leaveBtn);
