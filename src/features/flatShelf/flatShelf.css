@@ -1,0 +1,558 @@
+.flat-shelf {
+  --H: min(46vh, 31vw);
+
+  position: fixed;
+  inset: 0;
+  background: var(--paper);
+  color: var(--ink);
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.flat-shelf .fs-probe {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: var(--H);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Decade tabs */
+.flat-shelf .fs-tabs {
+  position: fixed;
+  left: 50%;
+  top: calc(50% - var(--H) / 2 - 86px);
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  z-index: 16;
+  max-width: calc(100vw - 16px);
+}
+
+.flat-shelf .fs-tab-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 23px;
+  background: var(--cobalt);
+  pointer-events: none;
+  z-index: 0;
+  transition: width .6s var(--ease), transform .6s var(--ease);
+}
+
+.flat-shelf .fs-tab {
+  position: relative;
+  z-index: 1;
+  height: 23px;
+  padding: 0 11px;
+  margin-left: -1px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .45s var(--ease);
+}
+
+.flat-shelf .fs-tab:first-of-type {
+  margin-left: 0;
+}
+
+.flat-shelf .fs-tab.is-active {
+  color: #fff;
+}
+
+/* 3D Shelf */
+.flat-shelf .fs-shelf {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: calc(50% - var(--H) / 2 - 40px);
+  height: calc(var(--H) + 80px);
+  perspective: 2200px;
+  perspective-origin: 50% 50%;
+  z-index: 10;
+  touch-action: pan-y;
+}
+
+.flat-shelf .fs-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+
+.flat-shelf .tape {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+  cursor: pointer;
+}
+
+.flat-shelf .tape .sp,
+.flat-shelf .tape .cv {
+  position: absolute;
+  height: var(--H);
+  top: calc(var(--H) / -2);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 2px;
+}
+
+.flat-shelf .tape .sp {
+  width: var(--ws);
+  left: calc(var(--ws) / -2);
+  transform: translateZ(calc(var(--d) / 2));
+}
+
+.flat-shelf .tape .cv {
+  width: var(--d);
+  left: calc(var(--d) / -2);
+  transform: rotateY(90deg) translateZ(calc(var(--ws) / 2));
+  box-shadow: 0 30px 60px -28px rgba(20, 16, 10, .55);
+}
+
+.flat-shelf .tape .sp::after,
+.flat-shelf .tape .cv::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--shade, 0);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.flat-shelf .fs-play-ring {
+  position: fixed;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--cobalt);
+  background: rgba(236, 232, 224, .75);
+  color: var(--cobalt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 16;
+  cursor: pointer;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.flat-shelf .fs-play-ring svg {
+  width: 12px;
+  height: 12px;
+  margin-left: 2px;
+  fill: currentColor;
+}
+
+/* Caption */
+.flat-shelf .fs-caption {
+  position: fixed;
+  left: 50%;
+  top: calc(50% + var(--H) / 2 + 30px);
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  z-index: 15;
+  pointer-events: none;
+  text-align: center;
+}
+
+.flat-shelf .fs-mask {
+  position: relative;
+  overflow: hidden;
+  width: min(92vw, 760px);
+  display: flex;
+  justify-content: center;
+  padding: 2px 0 4px;
+}
+
+.flat-shelf .fs-mask-title {
+  width: min(calc(100vw - 144px), 760px);
+}
+
+.flat-shelf .fs-mask-inner {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.flat-shelf .fs-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 31px;
+  line-height: 1.12;
+  letter-spacing: -.01em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.flat-shelf .fs-sub {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 10.5px;
+  line-height: 1.2;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--cobalt);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flat-shelf .fs-year {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: .08em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Arrows */
+.flat-shelf .fs-arrow {
+  position: fixed;
+  top: calc(50% + var(--H) / 2 + 40px);
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 16;
+  cursor: pointer;
+}
+
+.flat-shelf .fs-arrow-prev {
+  left: 20px;
+}
+
+.flat-shelf .fs-arrow-next {
+  right: 20px;
+}
+
+/* Small footer line */
+.flat-shelf .fs-foot {
+  position: fixed;
+  left: 32px;
+  right: 32px;
+  bottom: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--ink);
+  z-index: 15;
+}
+
+.flat-shelf .fs-foot .lbl {
+  letter-spacing: .09em;
+}
+
+.flat-shelf .fs-foot-links a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.flat-shelf .fs-foot-links a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Detail sheet */
+.flat-shelf .fs-detail {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  z-index: 60;
+  background: var(--sheet);
+  color: var(--ink);
+  visibility: hidden;
+  pointer-events: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.flat-shelf .fs-detail.is-open {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.flat-shelf .fs-detail-sticky {
+  position: sticky;
+  top: 0;
+  height: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.flat-shelf .fs-detail-close {
+  position: absolute;
+  left: 32px;
+  top: 31px;
+  background: var(--sheet);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.flat-shelf .fs-detail-first {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.flat-shelf .fs-detail-topband {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.flat-shelf .fs-detail-wordmark {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -.02em;
+  color: var(--cobalt);
+}
+
+.flat-shelf .fs-detail-grid {
+  flex: 1;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 4vw;
+  padding: 110px 6vw 56px 7vw;
+}
+
+.flat-shelf .fs-detail-footer-slot {
+  border-top: 1px solid var(--rule);
+}
+
+.flat-shelf .fs-detail-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  max-width: 520px;
+  gap: 18px;
+  min-width: 0;
+}
+
+.flat-shelf .fs-dline-mask {
+  overflow: hidden;
+  max-width: 100%;
+  padding-bottom: 0.08em;
+}
+
+.flat-shelf .fs-dline {
+  display: block;
+}
+
+.flat-shelf .fs-detail-sub {
+  color: var(--cobalt);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+  letter-spacing: .09em;
+}
+
+.flat-shelf .fs-detail-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(44px, 5.4vw, 84px);
+  line-height: 1;
+  letter-spacing: -.025em;
+  color: var(--ink);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.flat-shelf .fs-detail-meta {
+  color: var(--muted);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+  letter-spacing: .09em;
+}
+
+.flat-shelf .fs-detail-synopsis {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.5;
+  max-width: 42ch;
+  color: var(--ink);
+  hyphens: auto;
+  overflow-wrap: anywhere;
+}
+
+.flat-shelf .fs-detail-credit {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.flat-shelf .fs-detail-reserve {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 20px;
+  margin-top: 10px;
+  border: 1px solid var(--cobalt);
+  color: var(--cobalt);
+  background: transparent;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: .09em;
+  transition: background-color .25s var(--ease), color .25s var(--ease);
+}
+
+.flat-shelf .fs-detail-reserve:hover {
+  background: var(--cobalt);
+  color: #fff;
+}
+
+.flat-shelf .fs-detail-poster-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.flat-shelf .fs-detail-poster {
+  height: min(100%, 78vh);
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 474 / 900;
+  display: block;
+}
+
+@media (max-width: 767px) {
+  .flat-shelf {
+    --H: min(60vw, 40svh);
+  }
+
+  .flat-shelf .fs-tabs {
+    top: calc(50% - var(--H) / 2 - 70px);
+  }
+
+  .flat-shelf .fs-tab {
+    padding: 0 7px;
+    font-size: 9px;
+    letter-spacing: .07em;
+  }
+
+  .flat-shelf .fs-mask-title {
+    width: min(calc(100vw - 110px), 420px);
+  }
+
+  .flat-shelf .fs-title {
+    font-size: 24px;
+  }
+
+  .flat-shelf .fs-sub {
+    font-size: 9px;
+  }
+
+  .flat-shelf .fs-arrow-prev {
+    left: 6px;
+  }
+
+  .flat-shelf .fs-arrow-next {
+    right: 6px;
+  }
+
+  .flat-shelf .fs-foot {
+    left: 16px;
+    right: 16px;
+    bottom: 18px;
+  }
+
+  .flat-shelf .fs-foot .lbl {
+    font-size: 9px;
+  }
+
+  .flat-shelf .fs-detail-topband {
+    height: 64px;
+  }
+
+  .flat-shelf .fs-detail-wordmark {
+    font-size: 17px;
+  }
+
+  .flat-shelf .fs-detail-close {
+    left: 16px;
+    top: 21px;
+  }
+
+  .flat-shelf .fs-detail-grid {
+    grid-template-columns: 1fr;
+    padding: 84px 22px 40px;
+    gap: 24px;
+    align-content: start;
+  }
+
+  .flat-shelf .fs-detail-poster-wrap {
+    order: -1;
+    height: auto;
+  }
+
+  .flat-shelf .fs-detail-poster {
+    height: 46svh;
+  }
+
+  .flat-shelf .fs-detail-title {
+    font-size: 42px;
+  }
+
+  .flat-shelf .fs-detail-synopsis {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 375px) {
+  .flat-shelf .fs-tab {
+    padding: 0 5px;
+    font-size: 8.5px;
+    letter-spacing: .05em;
+  }
+}

@@ -1,0 +1,15 @@
+:root {
+  --ink: #141414;
+  --muted: #6D6A63;
+  --cobalt: #1F3FB0;
+  --rule: rgba(20, 20, 20, .9);
+  --paper: #ECE8E0;
+  --sheet: #F3F0EA;
+  --page: #EAE3DE;
+  --teal: #175A67;
+  --teal-soft: #2A707C;
+  --teal-hover: #0F454F;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --font-sans: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Newsreader", "Source Serif 4", Georgia, serif;
+}

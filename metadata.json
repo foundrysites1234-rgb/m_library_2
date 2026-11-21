@@ -1,0 +1,6 @@
+{
+  "name": "mlibrary",
+  "description": "A growing archive of books, stories and voices, open to every reader.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

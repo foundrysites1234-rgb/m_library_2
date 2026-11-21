@@ -1,0 +1,219 @@
+.contact-form {
+  --background: var(--sheet);
+  --foreground: var(--ink);
+  --primary: var(--cobalt);
+  --primary-foreground: #ffffff;
+  --muted-foreground: var(--muted);
+  --border: var(--rule);
+  --input: var(--ink);
+  --ring: var(--cobalt);
+  --destructive: #b3261e;
+  --popover: var(--sheet);
+  --popover-foreground: var(--ink);
+  --accent: rgba(31, 63, 176, .08);
+  --accent-foreground: var(--cobalt);
+  --radius: 0px;
+
+  position: relative;
+  display: grid;
+  gap: 28px;
+  max-width: 670px;
+  margin-top: clamp(28px, 4vw, 48px);
+}
+
+.contact-topic-group {
+  display: grid;
+}
+
+.contact-book-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .5s var(--ease);
+}
+
+.contact-book-collapse.is-open {
+  grid-template-rows: 1fr;
+}
+
+.contact-book-inner {
+  overflow: hidden;
+  min-height: 0;
+  padding-inline: 4px;
+  margin-inline: -4px;
+}
+
+.contact-book-spacer {
+  padding-top: 28px;
+  padding-bottom: 4px;
+  margin-bottom: -4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-book-collapse {
+    transition: none;
+  }
+}
+
+.contact-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.contact-consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.contact-consent-row [data-slot="checkbox"] {
+  margin-top: 3px;
+}
+
+.contact-consent-label {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: normal;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.contact-submit-wrap {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+}
+
+.contact-alert {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 2px solid #b3261e;
+  background: var(--sheet);
+  color: #b3261e;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.contact-success {
+  max-width: 670px;
+  margin-top: clamp(28px, 4vw, 48px);
+  padding: 16px 20px;
+  border-left: 2px solid var(--cobalt);
+  background: var(--sheet);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.contact-success:focus-visible {
+  outline: 2px solid var(--cobalt);
+  outline-offset: 2px;
+}
+
+/* Radix Select Content portals to document.body outside .contact-form */
+@keyframes contact-select-open {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes contact-select-close {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+.contact-select-content {
+  position: relative;
+  z-index: 90;
+  width: var(--radix-select-trigger-width);
+  max-height: min(320px, var(--radix-select-content-available-height));
+  overflow: hidden;
+  background: var(--sheet);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  box-shadow: 1px 1px 0 var(--rule);
+  transform-origin: var(--radix-select-content-transform-origin);
+}
+
+.contact-select-content[data-state="open"] {
+  animation: contact-select-open 180ms var(--ease) both;
+}
+
+.contact-select-content[data-state="closed"] {
+  animation: contact-select-close 150ms var(--ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-select-content[data-state="open"],
+  .contact-select-content[data-state="closed"] {
+    animation: none;
+  }
+}
+
+.contact-select-viewport {
+  padding: 4px 0;
+  max-height: min(312px, var(--radix-select-content-available-height));
+  overflow-y: auto;
+}
+
+.contact-select-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px 12px 40px;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  line-height: 1.35;
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.contact-select-item[data-highlighted] {
+  background: rgba(31, 63, 176, .08);
+  color: var(--cobalt);
+}
+
+.contact-select-item[data-state="checked"] {
+  color: var(--cobalt);
+}
+
+.contact-select-item-indicator {
+  position: absolute;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cobalt);
+}
+
+.contact-select-scroll-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+  background: var(--sheet);
+  color: var(--ink);
+  cursor: default;
+}
