@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useSheetState } from '../../app/sheetContext.js';
 import { HeroFooterBlend } from '../../components/footer/HeroFooterBlend.jsx';
 import { SiteFooter } from '../../components/footer/SiteFooter.jsx';
-import { BRAND } from '../../content/brand.js';
+import { BRAND, hasUrl } from '../../content/brand.js';
 import { getBookById } from '../../content/books.js';
 import { DECADES } from '../../content/decades.js';
 import { formatDecade } from '../../i18n/index.js';
@@ -28,6 +28,8 @@ export function FlatShelf() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { setDetailOpen } = useSheetState();
+  const hasFacebook = hasUrl(BRAND.social.facebook);
+  const hasInstagram = hasUrl(BRAND.social.instagram);
 
   const rootRef = useRef(null);
   const engineRef = useRef(null);
@@ -185,11 +187,17 @@ export function FlatShelf() {
 
       <footer className="fs-foot">
         <span className="lbl">{t.shelf.rights}</span>
-        <span className="lbl fs-foot-links">
-          <a href={BRAND.social.facebook} aria-label={t.nav.facebookLabel}>FB</a>
-          {' / '}
-          <a href={BRAND.social.instagram} aria-label={t.nav.instagramLabel}>IG</a>
-        </span>
+        {(hasFacebook || hasInstagram) && (
+          <span className="lbl fs-foot-links">
+            {hasFacebook && (
+              <a href={BRAND.social.facebook} aria-label={t.nav.facebookLabel}>FB</a>
+            )}
+            {hasFacebook && hasInstagram && ' / '}
+            {hasInstagram && (
+              <a href={BRAND.social.instagram} aria-label={t.nav.instagramLabel}>IG</a>
+            )}
+          </span>
+        )}
       </footer>
 
       <button

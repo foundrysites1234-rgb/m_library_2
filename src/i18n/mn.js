@@ -65,8 +65,6 @@ export default {
     col3Links: {
       faqs: 'Түгээмэл асуулт',
       membership: 'Гишүүнчлэл',
-      reservationStatus: 'Захиалгын төлөв',
-      talkToUs: 'Бидэнтэй холбогдох',
     },
     col4Title: 'Уншигчийн захидал',
     newsletterText: 'Шинэ ирсэн ном, түүх, гишүүдийн арга хэмжээний тухай эртхэн мэдэгдэл аваарай.',
@@ -140,7 +138,6 @@ export default {
       membership: 'Гишүүнчлэл',
       donate: 'Ном хандивлах',
       press: 'Хэвлэлийн лавлагаа',
-      status: 'Захиалгын төлөв',
     },
     validation: {
       nameRequired: 'Овог нэрээ оруулна уу.',

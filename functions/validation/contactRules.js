@@ -31,7 +31,6 @@ export const TOPICS = [
   'membership',
   'donate',
   'press',
-  'status',
 ];
 
 const DEFAULT_MESSAGES = {

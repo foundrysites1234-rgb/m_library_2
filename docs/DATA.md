@@ -10,7 +10,7 @@ Only visitor submissions live in the database (`node:sqlite` locally via `DB_PAT
 
 ### `contact_messages`
 
-Stores general inquiries, book reservation requests (`topic = 'reserve'` with `book_id`), membership inquiries, book donation offers, press inquiries, and reservation status requests.
+Stores general inquiries, book reservation requests (`topic = 'reserve'` with `book_id`), membership inquiries, book donation offers, and press inquiries (`status` is a legacy topic value kept in historical DB CHECK constraints and is no longer accepted by the API).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -19,7 +19,7 @@ Stores general inquiries, book reservation requests (`topic = 'reserve'` with `b
 | `full_name` | `TEXT` | **Personal data** (max 120 chars) |
 | `email` | `TEXT` | **Personal data** (max 254 chars) |
 | `phone` | `TEXT` (nullable) | **Personal data** (max 40 chars) |
-| `topic` | `TEXT` | One of `general`, `reserve`, `membership`, `donate`, `press`, `status` |
+| `topic` | `TEXT` | One of `general`, `reserve`, `membership`, `donate`, `press` (`status` is legacy and no longer accepted) |
 | `book_id` | `TEXT` (nullable) | One of the 12 book IDs when `topic = 'reserve'` |
 | `message` | `TEXT` | **Personal data** (max 2000 chars) |
 | `consent_given` | `BOOLEAN` / `INTEGER` | Explicit consent flag required on submission |

@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSheetState } from '../../app/sheetContext.js';
 import { HeroFooterBlend } from '../../components/footer/HeroFooterBlend.jsx';
 import { SiteFooter } from '../../components/footer/SiteFooter.jsx';
-import { BRAND } from '../../content/brand.js';
+import { BRAND, hasUrl } from '../../content/brand.js';
 import { getBookById } from '../../content/books.js';
 import { useLocale } from '../../i18n/useLocale.js';
 import { createCurvedArchive } from './engine/createCurvedArchive.js';
@@ -29,6 +29,8 @@ export function CurvedArchive() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { setDetailOpen } = useSheetState();
+  const hasFacebook = hasUrl(BRAND.social.facebook);
+  const hasInstagram = hasUrl(BRAND.social.instagram);
 
   const rootRef = useRef(null);
   const engineRef = useRef(null);
@@ -205,11 +207,17 @@ export function CurvedArchive() {
 
       <footer className="ca-foot">
         <span className="lbl">{t.shelf.rights}</span>
-        <span className="lbl ca-foot-links">
-          <a href={BRAND.social.facebook} aria-label={t.nav.facebookLabel}>FB</a>
-          {' / '}
-          <a href={BRAND.social.instagram} aria-label={t.nav.instagramLabel}>IG</a>
-        </span>
+        {(hasFacebook || hasInstagram) && (
+          <span className="lbl ca-foot-links">
+            {hasFacebook && (
+              <a href={BRAND.social.facebook} aria-label={t.nav.facebookLabel}>FB</a>
+            )}
+            {hasFacebook && hasInstagram && ' / '}
+            {hasInstagram && (
+              <a href={BRAND.social.instagram} aria-label={t.nav.instagramLabel}>IG</a>
+            )}
+          </span>
+        )}
       </footer>
 
       <button

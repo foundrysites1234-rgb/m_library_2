@@ -1,12 +1,15 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FOOTER_POSTER_URL, FOOTER_VIDEO_URL } from '../../content/assets.js';
-import { BRAND } from '../../content/brand.js';
+import { BRAND, hasUrl } from '../../content/brand.js';
 import { useLocale } from '../../i18n/useLocale.js';
 import './footer.css';
 
 export function SiteFooter({ root = null, onBeforeNavigate = null }) {
   const { locale, t } = useLocale();
+  const hasFacebook = hasUrl(BRAND.social.facebook);
+  const hasInstagram = hasUrl(BRAND.social.instagram);
+  const hasAnySocial = hasFacebook || hasInstagram;
   const nlEmailId = useId();
   const footerRef = useRef(null);
   const videoRef = useRef(null);
@@ -150,12 +153,14 @@ export function SiteFooter({ root = null, onBeforeNavigate = null }) {
                 </svg>
                 <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
               </li>
-              <li>
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2Z" />
-                </svg>
-                <a href={BRAND.phoneHref}>{BRAND.phone}</a>
-              </li>
+              {BRAND.phone && (
+                <li>
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2Z" />
+                  </svg>
+                  <a href={BRAND.phoneHref}>{BRAND.phone}</a>
+                </li>
+              )}
               <li>
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" />
@@ -193,8 +198,6 @@ export function SiteFooter({ root = null, onBeforeNavigate = null }) {
             <ul className="link-list">
               <li><Link {...linkProps('/about#faq')}>{t.footer.col3Links.faqs}</Link></li>
               <li><Link {...linkProps('/contact?topic=membership')}>{t.footer.col3Links.membership}</Link></li>
-              <li><Link {...linkProps('/contact?topic=status')}>{t.footer.col3Links.reservationStatus}</Link></li>
-              <li><Link {...linkProps('/contact')}>{t.footer.col3Links.talkToUs}</Link></li>
             </ul>
           </nav>
 
@@ -243,18 +246,24 @@ export function SiteFooter({ root = null, onBeforeNavigate = null }) {
         </div>
 
         <div className="footer-bottom">
-          <div className="socials">
-            <a href={BRAND.social.facebook} aria-label={t.nav.facebookLabel}>
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M13.5 21v-7.5H16l.5-3h-3V8.75c0-.87.24-1.46 1.5-1.46H16.6V4.6c-.28-.04-1.24-.12-2.36-.12-2.34 0-3.94 1.43-3.94 4.05V10.5H8v3h2.3V21h3.2Z" />
-              </svg>
-            </a>
-            <a href={BRAND.social.instagram} aria-label={t.nav.instagramLabel}>
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M7.5 3h9A4.5 4.5 0 0 1 21 7.5v9a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 16.5v-9A4.5 4.5 0 0 1 7.5 3Zm0 1.8A2.7 2.7 0 0 0 4.8 7.5v9a2.7 2.7 0 0 0 2.7 2.7h9a2.7 2.7 0 0 0 2.7-2.7v-9a2.7 2.7 0 0 0-2.7-2.7h-9Zm9.75 1.35a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Zm0 1.8a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4Z" />
-              </svg>
-            </a>
-          </div>
+          {hasAnySocial && (
+            <div className="socials">
+              {hasFacebook && (
+                <a href={BRAND.social.facebook} aria-label={t.nav.facebookLabel}>
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M13.5 21v-7.5H16l.5-3h-3V8.75c0-.87.24-1.46 1.5-1.46H16.6V4.6c-.28-.04-1.24-.12-2.36-.12-2.34 0-3.94 1.43-3.94 4.05V10.5H8v3h2.3V21h3.2Z" />
+                  </svg>
+                </a>
+              )}
+              {hasInstagram && (
+                <a href={BRAND.social.instagram} aria-label={t.nav.instagramLabel}>
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M7.5 3h9A4.5 4.5 0 0 1 21 7.5v9a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 16.5v-9A4.5 4.5 0 0 1 7.5 3Zm0 1.8A2.7 2.7 0 0 0 4.8 7.5v9a2.7 2.7 0 0 0 2.7 2.7h9a2.7 2.7 0 0 0 2.7-2.7v-9a2.7 2.7 0 0 0-2.7-2.7h-9Zm9.75 1.35a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Zm0 1.8a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4Z" />
+                  </svg>
+                </a>
+              )}
+            </div>
+          )}
 
           <nav className="legal" aria-label={t.footer.legalAria}>
             <Link {...linkProps('/legal/privacy')}>{t.footer.legal.privacy}</Link>

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BRAND } from '../../content/brand.js';
+import { BRAND, hasUrl } from '../../content/brand.js';
 import { useLocale } from '../../i18n/useLocale.js';
 import { LanguageToggle } from './LanguageToggle.jsx';
 import { setCursorMode } from './cursorStore.js';
@@ -20,6 +20,8 @@ function getBurgerInset() {
 export function MenuSheet({ open, onClose, anchorRef }) {
   const { pathname } = useLocation();
   const { t } = useLocale();
+  const hasFacebook = hasUrl(BRAND.social.facebook);
+  const hasInstagram = hasUrl(BRAND.social.instagram);
   const sheetRef = useRef(null);
   const closeBtnRef = useRef(null);
   const linkRefs = useRef([]);
@@ -228,27 +230,33 @@ export function MenuSheet({ open, onClose, anchorRef }) {
           >
             {BRAND.email}
           </a>
-          <span className="lbl">
-            <a
-              href={BRAND.social.facebook}
-              className="menu-foot-link"
-              aria-label={t.nav.facebookLabel}
-              onMouseEnter={enterBtn}
-              onMouseLeave={leaveBtn}
-            >
-              FB
-            </a>
-            {' / '}
-            <a
-              href={BRAND.social.instagram}
-              className="menu-foot-link"
-              aria-label={t.nav.instagramLabel}
-              onMouseEnter={enterBtn}
-              onMouseLeave={leaveBtn}
-            >
-              IG
-            </a>
-          </span>
+          {(hasFacebook || hasInstagram) && (
+            <span className="lbl">
+              {hasFacebook && (
+                <a
+                  href={BRAND.social.facebook}
+                  className="menu-foot-link"
+                  aria-label={t.nav.facebookLabel}
+                  onMouseEnter={enterBtn}
+                  onMouseLeave={leaveBtn}
+                >
+                  FB
+                </a>
+              )}
+              {hasFacebook && hasInstagram && ' / '}
+              {hasInstagram && (
+                <a
+                  href={BRAND.social.instagram}
+                  className="menu-foot-link"
+                  aria-label={t.nav.instagramLabel}
+                  onMouseEnter={enterBtn}
+                  onMouseLeave={leaveBtn}
+                >
+                  IG
+                </a>
+              )}
+            </span>
+          )}
         </div>
       </div>
     </div>

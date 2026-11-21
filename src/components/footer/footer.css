@@ -25,10 +25,10 @@
 }
 
 .site-footer {
-  --footer-ink: var(--cobalt);
-  --footer-ink-soft: color-mix(in srgb, var(--cobalt) 85%, transparent);
+  --footer-ink: var(--teal);
+  --footer-ink-soft: var(--teal-soft);
   --footer-cream: var(--page);
-  --footer-hover: color-mix(in srgb, var(--cobalt) 86%, black);
+  --footer-hover: var(--teal-hover);
   --fs-nav: clamp(.9rem, .55vw + .75rem, 1.02rem);
 
   position: relative;
@@ -54,25 +54,6 @@
   inset: 0;
   z-index: -2;
   pointer-events: none;
-}
-
-@media (min-width: 1101px) {
-  .footer-media::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: clamp(96px, 15vh, 160px);
-    z-index: 1;
-    pointer-events: none;
-    background: linear-gradient(
-      to top,
-      color-mix(in srgb, var(--page) 84%, transparent) 0%,
-      color-mix(in srgb, var(--page) 62%, transparent) 52%,
-      transparent 100%
-    );
-  }
 }
 
 .footer-bg {
@@ -132,7 +113,6 @@
   max-width: 24ch;
   font-size: var(--fs-nav);
   line-height: 1.62;
-  color: var(--footer-ink-soft);
   overflow-wrap: anywhere;
 }
 
@@ -205,12 +185,11 @@
   }
 }
 
-.newsletter > p:not(.newsletter-status) {
+.newsletter p {
   margin: 0 0 clamp(1rem, 2.2vh, 1.6rem);
   max-width: 32ch;
   font-size: var(--fs-nav);
   line-height: 1.62;
-  color: var(--footer-ink-soft);
   overflow-wrap: anywhere;
 }
 
@@ -237,11 +216,11 @@
 
 .subscribe input::placeholder {
   color: var(--footer-ink-soft);
-  opacity: 1;
+  opacity: .85;
 }
 
 .subscribe input:focus-visible {
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--cobalt) 25%, transparent);
+  box-shadow: inset 0 0 0 2px rgba(23, 90, 103, .25);
 }
 
 .subscribe button {

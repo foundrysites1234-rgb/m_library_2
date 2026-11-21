@@ -58,6 +58,32 @@ test('contactSchema requires valid bookId when topic is reserve', () => {
   assert.equal(validReserve.data.bookId, 'noon');
 });
 
+test('contactSchema accepts remaining topics and rejects legacy status topic', () => {
+  for (const topic of ['general', 'membership', 'donate', 'press']) {
+    const ok = contactSchema.safeParse({
+      requestId: validUuid,
+      fullName: 'Enkhjin',
+      email: 'enkhjin@example.com',
+      topic,
+      bookId: '',
+      message: 'Inquiry details.',
+      consent: true,
+    });
+    assert.equal(ok.success, true, `expected topic ${topic} to be accepted`);
+  }
+
+  const legacyStatus = contactSchema.safeParse({
+    requestId: validUuid,
+    fullName: 'Enkhjin',
+    email: 'enkhjin@example.com',
+    topic: 'status',
+    bookId: '',
+    message: 'Checking status.',
+    consent: true,
+  });
+  assert.equal(legacyStatus.success, false);
+});
+
 test('contactSchema rejects bookId when topic is not reserve', () => {
   const result = contactSchema.safeParse({
     requestId: validUuid,

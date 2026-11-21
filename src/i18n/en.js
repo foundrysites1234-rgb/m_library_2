@@ -65,8 +65,6 @@ export default {
     col3Links: {
       faqs: 'FAQs',
       membership: 'Membership',
-      reservationStatus: 'Reservation status',
-      talkToUs: 'Talk to us',
     },
     col4Title: 'The Reading Letter',
     newsletterText: 'Sign up for early notice on new arrivals, stories & members-only events.',
@@ -140,7 +138,6 @@ export default {
       membership: 'Membership',
       donate: 'Donate a book',
       press: 'Media enquiry',
-      status: 'Reservation status',
     },
     validation: {
       nameRequired: 'Please enter your full name.',
