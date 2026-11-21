@@ -1,8 +1,34 @@
+.hero-footer-blend {
+  --blend-from: var(--paper);
+  --blend-to: var(--page);
+  height: clamp(96px, 16vh, 200px);
+  height: clamp(96px, 16dvh, 200px);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--blend-from) 0%,
+    color-mix(in srgb, var(--blend-to) 2.8%, var(--blend-from)) 10%,
+    color-mix(in srgb, var(--blend-to) 10.4%, var(--blend-from)) 20%,
+    color-mix(in srgb, var(--blend-to) 21.6%, var(--blend-from)) 30%,
+    color-mix(in srgb, var(--blend-to) 35.2%, var(--blend-from)) 40%,
+    color-mix(in srgb, var(--blend-to) 50%, var(--blend-from)) 50%,
+    color-mix(in srgb, var(--blend-to) 64.8%, var(--blend-from)) 60%,
+    color-mix(in srgb, var(--blend-to) 78.4%, var(--blend-from)) 70%,
+    color-mix(in srgb, var(--blend-to) 89.6%, var(--blend-from)) 80%,
+    color-mix(in srgb, var(--blend-to) 97.2%, var(--blend-from)) 90%,
+    var(--blend-to) 100%
+  );
+}
+
+.hero-footer-blend.is-sheet {
+  --blend-from: var(--sheet);
+}
+
 .site-footer {
-  --footer-ink: var(--teal);
-  --footer-ink-soft: var(--teal-soft);
+  --footer-ink: var(--cobalt);
+  --footer-ink-soft: color-mix(in srgb, var(--cobalt) 85%, transparent);
   --footer-cream: var(--page);
-  --footer-hover: var(--teal-hover);
+  --footer-hover: color-mix(in srgb, var(--cobalt) 86%, black);
   --fs-nav: clamp(.9rem, .55vw + .75rem, 1.02rem);
 
   position: relative;
@@ -28,6 +54,25 @@
   inset: 0;
   z-index: -2;
   pointer-events: none;
+}
+
+@media (min-width: 1101px) {
+  .footer-media::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: clamp(96px, 15vh, 160px);
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      color-mix(in srgb, var(--page) 84%, transparent) 0%,
+      color-mix(in srgb, var(--page) 62%, transparent) 52%,
+      transparent 100%
+    );
+  }
 }
 
 .footer-bg {
@@ -87,6 +132,7 @@
   max-width: 24ch;
   font-size: var(--fs-nav);
   line-height: 1.62;
+  color: var(--footer-ink-soft);
   overflow-wrap: anywhere;
 }
 
@@ -152,16 +198,19 @@
   transition: opacity .2s ease, transform .2s ease;
 }
 
-.link-list a:hover {
-  opacity: .62;
-  transform: translateX(2px);
+@media (hover: hover) and (pointer: fine) {
+  .link-list a:hover {
+    opacity: .62;
+    transform: translateX(2px);
+  }
 }
 
-.newsletter p {
+.newsletter > p:not(.newsletter-status) {
   margin: 0 0 clamp(1rem, 2.2vh, 1.6rem);
   max-width: 32ch;
   font-size: var(--fs-nav);
   line-height: 1.62;
+  color: var(--footer-ink-soft);
   overflow-wrap: anywhere;
 }
 
@@ -188,11 +237,11 @@
 
 .subscribe input::placeholder {
   color: var(--footer-ink-soft);
-  opacity: .85;
+  opacity: 1;
 }
 
 .subscribe input:focus-visible {
-  box-shadow: inset 0 0 0 2px rgba(23, 90, 103, .25);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--cobalt) 25%, transparent);
 }
 
 .subscribe button {
@@ -207,8 +256,10 @@
   transition: background .2s ease;
 }
 
-.subscribe button:hover:not(:disabled) {
-  background: var(--footer-hover);
+@media (hover: hover) and (pointer: fine) {
+  .subscribe button:hover:not(:disabled) {
+    background: var(--footer-hover);
+  }
 }
 
 .subscribe button:disabled {
@@ -257,9 +308,11 @@
   transition: opacity .2s ease, transform .2s ease;
 }
 
-.socials a:hover {
-  opacity: .65;
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .socials a:hover {
+    opacity: .65;
+    transform: translateY(-2px);
+  }
 }
 
 .socials svg {

@@ -43,7 +43,7 @@ export function createCurvedArchive(container, options) {
     initialStrings,
     onRequestOpenBook,
     onRequestCloseBook,
-    onSheetFirstOpen,
+    onSheetOpenChange,
   } = options;
 
   preloadSheets();
@@ -59,12 +59,15 @@ export function createCurvedArchive(container, options) {
   const nextBtn = container.querySelector('.ca-arrow-next');
   const timelineEl = container.querySelector('.ca-timeline');
   const tlDotEl = container.querySelector('.ca-tl-dot');
+  const footEl = container.querySelector('.ca-foot');
+  const moreCueEl = container.querySelector('.ca-more-cue');
 
   const titleMask = container.querySelector('[data-ca-mask="title"]');
   const subMask = container.querySelector('[data-ca-mask="sub"]');
   const yearMask = container.querySelector('[data-ca-mask="year"]');
 
   const detailEl = container.querySelector('.ca-detail');
+  const detailFirstEl = container.querySelector('.ca-detail-first');
   const detailFooterSlotEl = container.querySelector('.ca-detail-footer-slot');
   const detailCloseBtn = container.querySelector('.ca-detail-close');
   const detailSubEl = container.querySelector('[data-ca-detail="sub"]');
@@ -76,6 +79,8 @@ export function createCurvedArchive(container, options) {
   const detailMasks = Array.from(container.querySelectorAll('.ca-dline'));
   const posterImageEl = container.querySelector('[data-ca-poster-image]');
   const blobEls = Array.from(container.querySelectorAll('[data-ca-blob]'));
+
+  const bgControls = [shelfEl, playRingEl, prevBtn, nextBtn, timelineEl, footEl, moreCueEl].filter(Boolean);
 
   if (detailEl) {
     detailEl.inert = true;
@@ -93,10 +98,12 @@ export function createCurvedArchive(container, options) {
   let isDragging = false;
   let dragMoved = false;
   let dragStartX = 0;
+  let dragStartY = 0;
   let dragT0 = T;
   let wheelTimer = null;
   let closeTimer = null;
-  let sheetOpenedOnce = false;
+  let wasScrolled = typeof window !== 'undefined' && window.scrollY > 1;
+  let lastScrollWheelTs = 0;
 
   let mx = window.innerWidth / 2;
   let my = window.innerHeight / 2;
@@ -111,20 +118,48 @@ export function createCurvedArchive(container, options) {
   let mainRaf = 0;
   let destroyed = false;
 
-  // Geometry cache
-  let W = window.innerWidth;
+  // Stage geometry cache (measured from container, not window)
+  let stageRect = container.getBoundingClientRect();
+  let W = Math.max(1, stageRect.width || window.innerWidth);
+  let stageH = Math.max(1, stageRect.height || window.innerHeight);
   let H = 360;
   let ws = 60;
   let d = 190;
   let gap = 12;
   let U = 468;
   let P = 1400;
-  let shelfCy = window.innerHeight * 0.41;
+  let shelfCy = stageH * 0.41;
   let XS = new Float32Array(2);
 
+  function setBackgroundInert(locked) {
+    const headerEl = document.querySelector('.site-header');
+    if (headerEl) headerEl.inert = locked;
+    bgControls.forEach((el) => {
+      el.inert = locked;
+    });
+  }
+
+  function updateReservePin() {
+    if (!detailFirstEl || !detailEl || !detailReserveEl) return;
+    if (W > 600) {
+      detailFirstEl.classList.remove('is-reserve-pinned');
+      return;
+    }
+    detailFirstEl.classList.remove('is-reserve-pinned');
+    const prevTop = detailEl.scrollTop;
+    detailEl.scrollTop = 0;
+    const dRect = detailEl.getBoundingClientRect();
+    const rRect = detailReserveEl.getBoundingClientRect();
+    const needsPin = rRect.bottom - dRect.top > detailEl.clientHeight - 10;
+    detailFirstEl.classList.toggle('is-reserve-pinned', needsPin);
+    detailEl.scrollTop = prevTop;
+  }
+
   function measure() {
-    W = window.innerWidth;
-    const rect = probe ? probe.getBoundingClientRect() : { height: Math.min(window.innerHeight * 0.47, W * 0.33) };
+    stageRect = container.getBoundingClientRect();
+    W = Math.max(1, stageRect.width || window.innerWidth);
+    stageH = Math.max(1, stageRect.height || window.innerHeight);
+    const rect = probe ? probe.getBoundingClientRect() : { height: Math.min(stageH * 0.47, W * 0.33) };
     H = Math.max(120, rect.height || 300);
     ws = (H * 142) / 840;
     d = (H * 474) / 900;
@@ -133,7 +168,7 @@ export function createCurvedArchive(container, options) {
     P = 1400;
 
     const shelfRect = shelfEl.getBoundingClientRect();
-    shelfCy = shelfRect.top + shelfRect.height / 2;
+    shelfCy = shelfRect.top - stageRect.top + shelfRect.height / 2;
 
     stageEl.style.setProperty('--ws', `${ws}px`);
     stageEl.style.setProperty('--d', `${d}px`);
@@ -147,6 +182,10 @@ export function createCurvedArchive(container, options) {
       const uMid = (i - 0.5) * 2;
       acc += 2 / (1 + Math.pow(uMid / U, 1.6));
       XS[i] = acc;
+    }
+
+    if (isOpen) {
+      updateReservePin();
     }
   }
 
@@ -312,9 +351,13 @@ export function createCurvedArchive(container, options) {
       detailReserveEl.textContent = strings.shelf.reserve;
       detailReserveEl.setAttribute('data-book-id', book.id);
     }
+
+    if (isOpen) {
+      updateReservePin();
+    }
   }
 
-  function getActiveCoverRect() {
+  function getActiveCoverRect(cRect) {
     const targetV = Math.round(s);
     let bestTape = null;
     let bestDist = Infinity;
@@ -327,7 +370,16 @@ export function createCurvedArchive(container, options) {
     }
     if (bestTape) {
       const rect = bestTape.cv.getBoundingClientRect();
-      if (rect.width > 10 && rect.height > 10) return rect;
+      if (rect.width > 10 && rect.height > 10) {
+        return {
+          left: rect.left - cRect.left,
+          top: rect.top - cRect.top,
+          right: rect.right - cRect.left,
+          bottom: rect.bottom - cRect.top,
+          width: rect.width,
+          height: rect.height,
+        };
+      }
     }
     const cw = d;
     const ch = H;
@@ -378,6 +430,11 @@ export function createCurvedArchive(container, options) {
   }
 
   function openBookInternal(book, immediate = false) {
+    if (window.scrollY > 0) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      measure();
+    }
+
     const idx = books.findIndex((b) => b.id === book.id);
     if (idx >= 0) {
       const curMod = mod(Math.round(s), N);
@@ -396,21 +453,38 @@ export function createCurvedArchive(container, options) {
       }
     }
 
+    clearTimeout(closeTimer);
     isOpen = true;
+    document.documentElement.classList.add('is-detail-locked');
+    setBackgroundInert(true);
+
     fillDetailTexts(book);
     applyPosterImage(posterImageEl, book.id);
 
-    const rect = getActiveCoverRect();
+    const cRect = container.getBoundingClientRect();
+    const rect = getActiveCoverRect(cRect);
     const top = Math.max(0, rect.top);
     const left = Math.max(0, rect.left);
-    const right = Math.max(0, window.innerWidth - rect.right);
-    const bottom = Math.max(0, window.innerHeight - rect.bottom);
+    const right = Math.max(0, cRect.width - rect.right);
+    const bottom = Math.max(0, cRect.height - rect.bottom);
     const fromClip = `inset(${top}px ${right}px ${bottom}px ${left}px round 3px)`;
 
     detailEl.getAnimations().forEach((a) => a.cancel());
+    detailEl.inert = false;
     detailEl.classList.add('is-open');
     detailEl.setAttribute('aria-hidden', 'false');
     detailEl.scrollTop = 0;
+
+    if (onSheetOpenChange) {
+      onSheetOpenChange(true, detailEl, detailFooterSlotEl);
+    }
+
+    requestAnimationFrame(() => {
+      if (isOpen && !destroyed && detailEl) {
+        detailEl.scrollTop = 0;
+        updateReservePin();
+      }
+    });
 
     const fast = immediate || isReducedMotion();
 
@@ -451,19 +525,48 @@ export function createCurvedArchive(container, options) {
     }
   }
 
-  function closeBookInternal() {
-    if (!isOpen) return;
+  function closeBookInternal(onClosed) {
+    if (!isOpen) {
+      if (typeof onClosed === 'function') onClosed();
+      return;
+    }
     isOpen = false;
     cancelAnimationFrame(inkRaf);
+    clearTimeout(closeTimer);
 
-    const rect = getActiveCoverRect();
+    const cRect = container.getBoundingClientRect();
+    const rect = getActiveCoverRect(cRect);
     const top = Math.max(0, rect.top);
     const left = Math.max(0, rect.left);
-    const right = Math.max(0, window.innerWidth - rect.right);
-    const bottom = Math.max(0, window.innerHeight - rect.bottom);
+    const right = Math.max(0, cRect.width - rect.right);
+    const bottom = Math.max(0, cRect.height - rect.bottom);
     const toClip = `inset(${top}px ${right}px ${bottom}px ${left}px round 3px)`;
 
     const fast = isReducedMotion();
+    const duration = fast ? 1 : 850;
+    let finished = false;
+
+    const finishClose = () => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(closeTimer);
+      if (!isOpen && !destroyed && detailEl) {
+        detailEl.classList.remove('is-open');
+        detailEl.setAttribute('aria-hidden', 'true');
+        detailEl.inert = true;
+        detailEl.getAnimations().forEach((a) => a.cancel());
+        detailMasks.forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
+        setBackgroundInert(false);
+        document.documentElement.classList.remove('is-detail-locked');
+        if (onSheetOpenChange) {
+          onSheetOpenChange(false, detailEl, detailFooterSlotEl);
+        }
+      }
+      if (!destroyed && typeof onClosed === 'function') {
+        onClosed();
+      }
+    };
+
     detailEl.getAnimations().forEach((a) => a.cancel());
     const anim = detailEl.animate(
       [
@@ -471,27 +574,16 @@ export function createCurvedArchive(container, options) {
         { clipPath: toClip },
       ],
       {
-        duration: fast ? 1 : 850,
+        duration,
         easing: 'cubic-bezier(.76,0,.18,1)',
         fill: 'both',
       }
     );
 
+    closeTimer = setTimeout(finishClose, duration + 60);
     anim.finished
-      .then(() => {
-        if (!isOpen && !destroyed) {
-          detailEl.classList.remove('is-open');
-          detailEl.setAttribute('aria-hidden', 'true');
-          detailEl.getAnimations().forEach((a) => a.cancel());
-          detailMasks.forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
-        }
-      })
-      .catch(() => {
-        if (!isOpen && !destroyed) {
-          detailEl.classList.remove('is-open');
-          detailEl.setAttribute('aria-hidden', 'true');
-        }
-      });
+      .then(finishClose)
+      .catch(finishClose);
   }
 
   function triggerOpen(book, immediate = false) {
@@ -524,20 +616,38 @@ export function createCurvedArchive(container, options) {
     }
   }
 
-  // Input handlers
+  // Input & observers
   const onResize = () => {
     measure();
   };
 
+  let resizeObserver = null;
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => {
+      if (!destroyed) measure();
+    });
+    resizeObserver.observe(container);
+  }
+
+  const onWindowScroll = () => {
+    if (window.scrollY > 1) {
+      wasScrolled = true;
+    }
+  };
+
   const onPointerMove = (e) => {
-    mx = e.clientX;
-    my = e.clientY;
+    stageRect = container.getBoundingClientRect();
+    mx = e.clientX - stageRect.left;
+    my = e.clientY - stageRect.top;
     if (e.pointerType !== 'touch') {
-      setCursorTarget(mx, my);
+      setCursorTarget(e.clientX, e.clientY);
     }
     if (isDragging) {
       const dx = e.clientX - dragStartX;
-      if (Math.abs(dx) > 5) dragMoved = true;
+      const dy = e.clientY - dragStartY;
+      if (!dragMoved && Math.abs(dx) > 6 && Math.abs(dx) >= Math.abs(dy)) {
+        dragMoved = true;
+      }
       if (dragMoved) {
         T = dragT0 - dx / (ws + gap);
       }
@@ -549,6 +659,7 @@ export function createCurvedArchive(container, options) {
     isDragging = true;
     dragMoved = false;
     dragStartX = e.clientX;
+    dragStartY = e.clientY;
     dragT0 = T;
   };
 
@@ -565,13 +676,47 @@ export function createCurvedArchive(container, options) {
 
   const onWheel = (e) => {
     if (isOpen) return;
+    const now = performance.now();
+
+    if (window.scrollY > 1) {
+      wasScrolled = true;
+      lastScrollWheelTs = now;
+      return;
+    }
+
+    if (wasScrolled) {
+      if (now - lastScrollWheelTs < 300) {
+        lastScrollWheelTs = now;
+        return;
+      }
+      wasScrolled = false;
+    }
+
     const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
     if (delta === 0) return;
+
+    const curRound = Math.round(T);
+    const loopBase = Math.floor(curRound / N) * N;
+    const loopEnd = loopBase + N - 1;
+
+    if (delta > 0 && curRound >= loopEnd && T >= loopEnd - 0.1) {
+      T = loopEnd;
+      wasScrolled = true;
+      lastScrollWheelTs = now;
+      return;
+    }
+
+    if (delta < 0 && curRound <= loopBase && T <= loopBase + 0.1) {
+      T = loopBase;
+      return;
+    }
+
     e.preventDefault();
-    T += (delta / (ws + gap)) * 0.5;
+    const step = (delta / (ws + gap)) * 0.5;
+    T = Math.max(loopBase, Math.min(loopEnd, T + step));
     clearTimeout(wheelTimer);
     wheelTimer = setTimeout(() => {
-      T = Math.round(T);
+      T = Math.max(loopBase, Math.min(loopEnd, Math.round(T)));
     }, 160);
   };
 
@@ -582,13 +727,21 @@ export function createCurvedArchive(container, options) {
       return;
     }
     if (isOpen) return;
+    const activeEl = document.activeElement;
+    if (
+      activeEl &&
+      activeEl !== document.body &&
+      !container.contains(activeEl)
+    ) {
+      return;
+    }
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
       T = Math.round(T) - 1;
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       T = Math.round(T) + 1;
-    } else if (e.key === 'Enter' && (document.activeElement === document.body || shelfEl.contains(document.activeElement))) {
+    } else if (e.key === 'Enter' && (activeEl === document.body || shelfEl.contains(activeEl))) {
       e.preventDefault();
       triggerOpen(books[active], false);
     }
@@ -633,13 +786,15 @@ export function createCurvedArchive(container, options) {
   const enterBtn = () => setCursorMode('btn');
   const leaveBtn = () => setCursorMode('default');
 
-  const btnElements = [prevBtn, nextBtn, playRingEl, timelineEl, detailCloseBtn, detailReserveEl].filter(Boolean);
+  const btnElements = [prevBtn, nextBtn, playRingEl, timelineEl, moreCueEl, detailCloseBtn, detailReserveEl].filter(Boolean);
   btnElements.forEach((el) => {
     el.addEventListener('pointerenter', enterBtn);
     el.addEventListener('pointerleave', leaveBtn);
   });
 
   window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', onResize);
+  window.addEventListener('scroll', onWindowScroll, { passive: true });
   window.addEventListener('pointermove', onPointerMove, { passive: true });
   window.addEventListener('pointerup', onPointerUp);
   window.addEventListener('pointercancel', onPointerUp);
@@ -689,7 +844,7 @@ export function createCurvedArchive(container, options) {
       }
     }
 
-    // Cover tilt test
+    // Cover tilt test (relative to stage container)
     const settled = Math.abs(T - s) < 0.3;
     onCover =
       !isOpen &&
@@ -810,15 +965,21 @@ export function createCurvedArchive(container, options) {
       const book = books.find((b) => b.id === bookId) || books[active];
       openBookInternal(book, immediate);
     },
-    closeBook() {
-      closeBookInternal();
+    closeBook(onClosed) {
+      closeBookInternal(onClosed);
     },
     destroy() {
       destroyed = true;
       cancelAnimationFrame(mainRaf);
       cancelAnimationFrame(inkRaf);
       clearTimeout(wheelTimer);
+      clearTimeout(closeTimer);
+      if (resizeObserver) resizeObserver.disconnect();
+      setBackgroundInert(false);
+      document.documentElement.classList.remove('is-detail-locked');
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+      window.removeEventListener('scroll', onWindowScroll);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);

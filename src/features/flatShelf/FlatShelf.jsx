@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useSheetState } from '../../app/sheetContext.js';
+import { HeroFooterBlend } from '../../components/footer/HeroFooterBlend.jsx';
+import { SiteFooter } from '../../components/footer/SiteFooter.jsx';
 import { BRAND } from '../../content/brand.js';
 import { getBookById } from '../../content/books.js';
 import { DECADES } from '../../content/decades.js';
 import { formatDecade } from '../../i18n/index.js';
 import { useLocale } from '../../i18n/useLocale.js';
-import { SiteFooter } from '../../components/footer/SiteFooter.jsx';
 import { createFlatShelf } from './engine/createFlatShelf.js';
 import './flatShelf.css';
 
@@ -25,6 +27,7 @@ export function FlatShelf() {
   const { id: routeBookId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { setDetailOpen } = useSheetState();
 
   const rootRef = useRef(null);
   const engineRef = useRef(null);
@@ -49,13 +52,15 @@ export function FlatShelf() {
       onRequestCloseBook: () => {
         navigate('/books');
       },
-      onSheetFirstOpen: (root, slot) => {
-        setFooterPortal({ root, slot });
+      onSheetOpenChange: (open, root, slot) => {
+        setDetailOpen(open);
+        setFooterPortal(open && root && slot ? { root, slot } : null);
       },
     });
     engineRef.current = engine;
 
     return () => {
+      setDetailOpen(false);
       setFooterPortal(null);
       engine.destroy();
       engineRef.current = null;
@@ -92,9 +97,19 @@ export function FlatShelf() {
     navigate(`/contact?topic=reserve&book=${encodeURIComponent(id)}`);
   };
 
+  const handleMoreClick = () => {
+    const reduced =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const footer = document.querySelector('.hero-shell > footer.site-footer');
+    if (footer) {
+      footer.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    }
+  };
+
   const handleFooterNavigate = useCallback(
     (to) => {
       if (to === '/books' || to.startsWith('/books?')) {
+        window.scrollTo({ top: 0, behavior: 'auto' });
         navigate(to);
         return;
       }
@@ -177,6 +192,15 @@ export function FlatShelf() {
         </span>
       </footer>
 
+      <button
+        type="button"
+        className="box lbl fs-more-cue"
+        onClick={handleMoreClick}
+      >
+        <span>{t.shelf.more}</span>
+        <span aria-hidden="true">↓</span>
+      </button>
+
       <div
         className="fs-detail"
         role="dialog"
@@ -212,7 +236,7 @@ export function FlatShelf() {
               <div className="fs-dline-mask">
                 <p className="fs-dline fs-detail-credit" data-fs-detail="credit" />
               </div>
-              <div className="fs-dline-mask">
+              <div className="fs-dline-mask fs-detail-reserve-mask">
                 <Link
                   to="/contact?topic=reserve"
                   className="fs-dline lbl fs-detail-reserve"
@@ -254,6 +278,7 @@ export function FlatShelf() {
           </div>
         </div>
 
+        <HeroFooterBlend variant="sheet" />
         <div className="fs-detail-footer-slot" />
       </div>
 

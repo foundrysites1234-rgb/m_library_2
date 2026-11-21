@@ -10,7 +10,9 @@ export function CustomCursor({ active }) {
     const el = rootRef.current;
     if (!el || !active) return undefined;
 
-    const isFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    const isFinePointer =
+      window.matchMedia &&
+      window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     if (!isFinePointer) return undefined;
 
     let cx = getCursorState().x;

@@ -4,7 +4,7 @@ import { LanguageToggle } from './LanguageToggle.jsx';
 import { setCursorMode } from './cursorStore.js';
 
 export function SiteHeader({ isHero, onOpenMenu, burgerRef, menuOpen }) {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { t } = useLocale();
 
   const isBooks = pathname === '/books' || pathname.startsWith('/books/');
@@ -14,11 +14,25 @@ export function SiteHeader({ isHero, onOpenMenu, burgerRef, menuOpen }) {
   const enterBtn = () => setCursorMode('btn');
   const leaveBtn = () => setCursorMode('default');
 
+  const scrollToTop = () => {
+    const reduced =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+  };
+
+  const handleLogoClick = (e) => {
+    if (pathname === '/' && !search) {
+      e.preventDefault();
+      scrollToTop();
+    }
+  };
+
   return (
     <header className={`site-header${isHero ? ' is-hero' : ''}`}>
       <Link
         to="/"
         className="brand-lockup-link"
+        onClick={handleLogoClick}
         onMouseEnter={enterBtn}
         onMouseLeave={leaveBtn}
       >

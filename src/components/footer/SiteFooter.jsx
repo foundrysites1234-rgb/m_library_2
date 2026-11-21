@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FOOTER_POSTER_URL, FOOTER_VIDEO_URL } from '../../content/assets.js';
 import { BRAND } from '../../content/brand.js';
@@ -7,6 +7,7 @@ import './footer.css';
 
 export function SiteFooter({ root = null, onBeforeNavigate = null }) {
   const { locale, t } = useLocale();
+  const nlEmailId = useId();
   const footerRef = useRef(null);
   const videoRef = useRef(null);
   const [inView, setInView] = useState(false);
@@ -201,11 +202,11 @@ export function SiteFooter({ root = null, onBeforeNavigate = null }) {
             <h2 className="col-title">{t.footer.col4Title}</h2>
             <p>{t.footer.newsletterText}</p>
             <form className="subscribe" onSubmit={handleSubmit} noValidate>
-              <label htmlFor="nl-email" className="sr-only">
+              <label htmlFor={nlEmailId} className="sr-only">
                 {t.newsletter.label}
               </label>
               <input
-                id="nl-email"
+                id={nlEmailId}
                 type="email"
                 name="email"
                 value={email}

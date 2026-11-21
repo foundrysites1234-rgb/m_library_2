@@ -43,7 +43,7 @@ export function createFlatShelf(container, options) {
     initialStrings,
     onRequestOpenBook,
     onRequestCloseBook,
-    onSheetFirstOpen,
+    onSheetOpenChange,
   } = options;
 
   preloadSheets();
@@ -52,11 +52,14 @@ export function createFlatShelf(container, options) {
   let strings = initialStrings;
 
   const probe = container.querySelector('.fs-probe');
+  const tabsEl = container.querySelector('.fs-tabs');
   const shelfEl = container.querySelector('.fs-shelf');
   const stageEl = container.querySelector('.fs-stage');
   const playRingEl = container.querySelector('.fs-play-ring');
   const prevBtn = container.querySelector('.fs-arrow-prev');
   const nextBtn = container.querySelector('.fs-arrow-next');
+  const footEl = container.querySelector('.fs-foot');
+  const moreCueEl = container.querySelector('.fs-more-cue');
   const tabIndicator = container.querySelector('.fs-tab-indicator');
   const tabBtns = Array.from(container.querySelectorAll('.fs-tab'));
 
@@ -65,6 +68,7 @@ export function createFlatShelf(container, options) {
   const yearMask = container.querySelector('[data-fs-mask="year"]');
 
   const detailEl = container.querySelector('.fs-detail');
+  const detailFirstEl = container.querySelector('.fs-detail-first');
   const detailFooterSlotEl = container.querySelector('.fs-detail-footer-slot');
   const detailCloseBtn = container.querySelector('.fs-detail-close');
   const detailSubEl = container.querySelector('[data-fs-detail="sub"]');
@@ -76,6 +80,8 @@ export function createFlatShelf(container, options) {
   const detailMasks = Array.from(container.querySelectorAll('.fs-dline'));
   const posterImageEl = container.querySelector('[data-fs-poster-image]');
   const blobEls = Array.from(container.querySelectorAll('[data-fs-blob]'));
+
+  const bgControls = [tabsEl, shelfEl, playRingEl, prevBtn, nextBtn, footEl, moreCueEl].filter(Boolean);
 
   if (detailEl) {
     detailEl.inert = true;
@@ -98,10 +104,12 @@ export function createFlatShelf(container, options) {
   let isDragging = false;
   let dragMoved = false;
   let dragStartX = 0;
+  let dragStartY = 0;
   let dragT0 = T;
   let wheelTimer = null;
   let closeTimer = null;
-  let sheetOpenedOnce = false;
+  let wasScrolled = typeof window !== 'undefined' && window.scrollY > 1;
+  let lastScrollWheelTs = 0;
 
   let mx = window.innerWidth / 2;
   let my = window.innerHeight / 2;
@@ -115,27 +123,59 @@ export function createFlatShelf(container, options) {
   let mainRaf = 0;
   let destroyed = false;
 
-  let W = window.innerWidth;
+  let stageRect = container.getBoundingClientRect();
+  let W = Math.max(1, stageRect.width || window.innerWidth);
+  let stageH = Math.max(1, stageRect.height || window.innerHeight);
   let H = 350;
   let ws = 59;
   let d = 184;
   let gap = 10.5;
-  let shelfCy = window.innerHeight * 0.5;
+  let shelfCy = stageH * 0.5;
+
+  function setBackgroundInert(locked) {
+    const headerEl = document.querySelector('.site-header');
+    if (headerEl) headerEl.inert = locked;
+    bgControls.forEach((el) => {
+      el.inert = locked;
+    });
+  }
+
+  function updateReservePin() {
+    if (!detailFirstEl || !detailEl || !detailReserveEl) return;
+    if (W > 600) {
+      detailFirstEl.classList.remove('is-reserve-pinned');
+      return;
+    }
+    detailFirstEl.classList.remove('is-reserve-pinned');
+    const prevTop = detailEl.scrollTop;
+    detailEl.scrollTop = 0;
+    const dRect = detailEl.getBoundingClientRect();
+    const rRect = detailReserveEl.getBoundingClientRect();
+    const needsPin = rRect.bottom - dRect.top > detailEl.clientHeight - 10;
+    detailFirstEl.classList.toggle('is-reserve-pinned', needsPin);
+    detailEl.scrollTop = prevTop;
+  }
 
   function measure() {
-    W = window.innerWidth;
-    const rect = probe ? probe.getBoundingClientRect() : { height: Math.min(window.innerHeight * 0.46, W * 0.31) };
+    stageRect = container.getBoundingClientRect();
+    W = Math.max(1, stageRect.width || window.innerWidth);
+    stageH = Math.max(1, stageRect.height || window.innerHeight);
+    const rect = probe ? probe.getBoundingClientRect() : { height: Math.min(stageH * 0.46, W * 0.31) };
     H = Math.max(120, rect.height || 300);
     ws = (H * 142) / 840;
     d = (H * 474) / 900;
     gap = H * 0.03;
 
     const shelfRect = shelfEl.getBoundingClientRect();
-    shelfCy = shelfRect.top + shelfRect.height / 2;
+    shelfCy = shelfRect.top - stageRect.top + shelfRect.height / 2;
 
     stageEl.style.setProperty('--ws', `${ws}px`);
     stageEl.style.setProperty('--d', `${d}px`);
     syncDecadeIndicator();
+
+    if (isOpen) {
+      updateReservePin();
+    }
   }
 
   function B(r) {
@@ -160,6 +200,14 @@ export function createFlatShelf(container, options) {
     if (tabIndicator && activeBtn) {
       tabIndicator.style.width = `${activeBtn.offsetWidth}px`;
       tabIndicator.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
+      if (tabsEl && tabsEl.scrollWidth > tabsEl.clientWidth) {
+        const btnLeft = activeBtn.offsetLeft;
+        const btnRight = btnLeft + activeBtn.offsetWidth;
+        const viewLeft = tabsEl.scrollLeft;
+        const viewRight = viewLeft + tabsEl.clientWidth;
+        if (btnLeft < viewLeft) tabsEl.scrollLeft = btnLeft;
+        else if (btnRight > viewRight) tabsEl.scrollLeft = btnRight - tabsEl.clientWidth;
+      }
     }
   }
 
@@ -301,9 +349,13 @@ export function createFlatShelf(container, options) {
       detailReserveEl.textContent = strings.shelf.reserve;
       detailReserveEl.setAttribute('data-book-id', book.id);
     }
+
+    if (isOpen) {
+      updateReservePin();
+    }
   }
 
-  function getActiveCoverRect() {
+  function getActiveCoverRect(cRect) {
     const targetV = Math.round(s);
     let bestTape = null;
     let bestDist = Infinity;
@@ -316,7 +368,16 @@ export function createFlatShelf(container, options) {
     }
     if (bestTape) {
       const rect = bestTape.cv.getBoundingClientRect();
-      if (rect.width > 10 && rect.height > 10) return rect;
+      if (rect.width > 10 && rect.height > 10) {
+        return {
+          left: rect.left - cRect.left,
+          top: rect.top - cRect.top,
+          right: rect.right - cRect.left,
+          bottom: rect.bottom - cRect.top,
+          width: rect.width,
+          height: rect.height,
+        };
+      }
     }
     return {
       left: W / 2 - d / 2,
@@ -365,6 +426,11 @@ export function createFlatShelf(container, options) {
   }
 
   function openBookInternal(book, immediate = false) {
+    if (window.scrollY > 0) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      measure();
+    }
+
     const idx = books.findIndex((b) => b.id === book.id);
     if (idx >= 0) {
       const curMod = mod(Math.round(s), N);
@@ -384,14 +450,18 @@ export function createFlatShelf(container, options) {
 
     clearTimeout(closeTimer);
     isOpen = true;
+    document.documentElement.classList.add('is-detail-locked');
+    setBackgroundInert(true);
+
     fillDetailTexts(book);
     applyPosterImage(posterImageEl, book.id);
 
-    const rect = getActiveCoverRect();
+    const cRect = container.getBoundingClientRect();
+    const rect = getActiveCoverRect(cRect);
     const top = Math.max(0, rect.top);
     const left = Math.max(0, rect.left);
-    const right = Math.max(0, window.innerWidth - rect.right);
-    const bottom = Math.max(0, window.innerHeight - rect.bottom);
+    const right = Math.max(0, cRect.width - rect.right);
+    const bottom = Math.max(0, cRect.height - rect.bottom);
     const fromClip = `inset(${top}px ${right}px ${bottom}px ${left}px round 3px)`;
     const originX = rect.left + rect.width / 2;
     const originY = rect.top + rect.height / 2;
@@ -402,18 +472,17 @@ export function createFlatShelf(container, options) {
     detailEl.classList.add('is-open');
     detailEl.setAttribute('aria-hidden', 'false');
     detailEl.scrollTop = 0;
+
+    if (onSheetOpenChange) {
+      onSheetOpenChange(true, detailEl, detailFooterSlotEl);
+    }
+
     requestAnimationFrame(() => {
       if (isOpen && !destroyed && detailEl) {
         detailEl.scrollTop = 0;
+        updateReservePin();
       }
     });
-
-    if (!sheetOpenedOnce) {
-      sheetOpenedOnce = true;
-      if (onSheetFirstOpen && detailEl && detailFooterSlotEl) {
-        onSheetFirstOpen(detailEl, detailFooterSlotEl);
-      }
-    }
 
     const fast = immediate || isReducedMotion();
 
@@ -463,11 +532,12 @@ export function createFlatShelf(container, options) {
     cancelAnimationFrame(inkRaf);
     clearTimeout(closeTimer);
 
-    const rect = getActiveCoverRect();
+    const cRect = container.getBoundingClientRect();
+    const rect = getActiveCoverRect(cRect);
     const top = Math.max(0, rect.top);
     const left = Math.max(0, rect.left);
-    const right = Math.max(0, window.innerWidth - rect.right);
-    const bottom = Math.max(0, window.innerHeight - rect.bottom);
+    const right = Math.max(0, cRect.width - rect.right);
+    const bottom = Math.max(0, cRect.height - rect.bottom);
     const toClip = `inset(${top}px ${right}px ${bottom}px ${left}px round 3px)`;
     const originX = rect.left + rect.width / 2;
     const originY = rect.top + rect.height / 2;
@@ -487,6 +557,11 @@ export function createFlatShelf(container, options) {
         detailEl.inert = true;
         detailEl.getAnimations().forEach((a) => a.cancel());
         detailMasks.forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
+        setBackgroundInert(false);
+        document.documentElement.classList.remove('is-detail-locked');
+        if (onSheetOpenChange) {
+          onSheetOpenChange(false, detailEl, detailFooterSlotEl);
+        }
       }
       if (!destroyed && typeof onClosed === 'function') {
         onClosed();
@@ -561,15 +636,33 @@ export function createFlatShelf(container, options) {
     measure();
   };
 
+  let resizeObserver = null;
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => {
+      if (!destroyed) measure();
+    });
+    resizeObserver.observe(container);
+  }
+
+  const onWindowScroll = () => {
+    if (window.scrollY > 1) {
+      wasScrolled = true;
+    }
+  };
+
   const onPointerMove = (e) => {
-    mx = e.clientX;
-    my = e.clientY;
+    stageRect = container.getBoundingClientRect();
+    mx = e.clientX - stageRect.left;
+    my = e.clientY - stageRect.top;
     if (e.pointerType !== 'touch') {
-      setCursorTarget(mx, my);
+      setCursorTarget(e.clientX, e.clientY);
     }
     if (isDragging) {
       const dx = e.clientX - dragStartX;
-      if (Math.abs(dx) > 5) dragMoved = true;
+      const dy = e.clientY - dragStartY;
+      if (!dragMoved && Math.abs(dx) > 6 && Math.abs(dx) >= Math.abs(dy)) {
+        dragMoved = true;
+      }
       if (dragMoved) {
         T = dragT0 - dx / (ws + gap);
       }
@@ -581,6 +674,7 @@ export function createFlatShelf(container, options) {
     isDragging = true;
     dragMoved = false;
     dragStartX = e.clientX;
+    dragStartY = e.clientY;
     dragT0 = T;
   };
 
@@ -597,13 +691,47 @@ export function createFlatShelf(container, options) {
 
   const onWheel = (e) => {
     if (isOpen) return;
+    const now = performance.now();
+
+    if (window.scrollY > 1) {
+      wasScrolled = true;
+      lastScrollWheelTs = now;
+      return;
+    }
+
+    if (wasScrolled) {
+      if (now - lastScrollWheelTs < 300) {
+        lastScrollWheelTs = now;
+        return;
+      }
+      wasScrolled = false;
+    }
+
     const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
     if (delta === 0) return;
+
+    const curRound = Math.round(T);
+    const loopBase = Math.floor(curRound / N) * N;
+    const loopEnd = loopBase + N - 1;
+
+    if (delta > 0 && curRound >= loopEnd && T >= loopEnd - 0.1) {
+      T = loopEnd;
+      wasScrolled = true;
+      lastScrollWheelTs = now;
+      return;
+    }
+
+    if (delta < 0 && curRound <= loopBase && T <= loopBase + 0.1) {
+      T = loopBase;
+      return;
+    }
+
     e.preventDefault();
-    T += (delta / (ws + gap)) * 0.5;
+    const step = (delta / (ws + gap)) * 0.5;
+    T = Math.max(loopBase, Math.min(loopEnd, T + step));
     clearTimeout(wheelTimer);
     wheelTimer = setTimeout(() => {
-      T = Math.round(T);
+      T = Math.max(loopBase, Math.min(loopEnd, Math.round(T)));
     }, 160);
   };
 
@@ -614,13 +742,21 @@ export function createFlatShelf(container, options) {
       return;
     }
     if (isOpen) return;
+    const activeEl = document.activeElement;
+    if (
+      activeEl &&
+      activeEl !== document.body &&
+      !container.contains(activeEl)
+    ) {
+      return;
+    }
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
       T = Math.round(T) - 1;
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       T = Math.round(T) + 1;
-    } else if (e.key === 'Enter' && (document.activeElement === document.body || shelfEl.contains(document.activeElement))) {
+    } else if (e.key === 'Enter' && (activeEl === document.body || shelfEl.contains(activeEl))) {
       e.preventDefault();
       triggerOpen(books[active], false);
     }
@@ -658,13 +794,15 @@ export function createFlatShelf(container, options) {
   const enterBtn = () => setCursorMode('btn');
   const leaveBtn = () => setCursorMode('default');
 
-  const btnElements = [prevBtn, nextBtn, playRingEl, detailCloseBtn, detailReserveEl, ...tabBtns].filter(Boolean);
+  const btnElements = [prevBtn, nextBtn, playRingEl, moreCueEl, detailCloseBtn, detailReserveEl, ...tabBtns].filter(Boolean);
   btnElements.forEach((el) => {
     el.addEventListener('pointerenter', enterBtn);
     el.addEventListener('pointerleave', leaveBtn);
   });
 
   window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', onResize);
+  window.addEventListener('scroll', onWindowScroll, { passive: true });
   window.addEventListener('pointermove', onPointerMove, { passive: true });
   window.addEventListener('pointerup', onPointerUp);
   window.addEventListener('pointercancel', onPointerUp);
@@ -813,7 +951,12 @@ export function createFlatShelf(container, options) {
       cancelAnimationFrame(inkRaf);
       clearTimeout(wheelTimer);
       clearTimeout(closeTimer);
+      if (resizeObserver) resizeObserver.disconnect();
+      setBackgroundInert(false);
+      document.documentElement.classList.remove('is-detail-locked');
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+      window.removeEventListener('scroll', onWindowScroll);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);

@@ -17,12 +17,15 @@
   position: relative;
   display: grid;
   gap: 28px;
+  width: 100%;
+  min-width: 0;
   max-width: 670px;
   margin-top: clamp(28px, 4vw, 48px);
 }
 
 .contact-topic-group {
   display: grid;
+  min-width: 0;
 }
 
 .contact-book-collapse {
@@ -38,6 +41,7 @@
 .contact-book-inner {
   overflow: hidden;
   min-height: 0;
+  min-width: 0;
   padding-inline: 4px;
   margin-inline: -4px;
 }

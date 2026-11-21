@@ -1,13 +1,21 @@
 .flat-shelf {
   --H: min(46vh, 31vw);
+  --H: min(46dvh, 31vw);
 
-  position: fixed;
-  inset: 0;
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   background: var(--paper);
   color: var(--ink);
   overflow: hidden;
+  contain: layout paint;
   user-select: none;
   -webkit-user-select: none;
+}
+
+.flat-shelf:has(> .fs-detail.is-open) {
+  z-index: 35;
 }
 
 .flat-shelf .fs-probe {
@@ -55,6 +63,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   cursor: pointer;
   white-space: nowrap;
   transition: color .45s var(--ease);
@@ -278,10 +287,50 @@
   text-underline-offset: 3px;
 }
 
+/* More cue */
+.flat-shelf .fs-more-cue {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 16;
+  height: 23px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--cobalt);
+  color: var(--cobalt);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .25s var(--ease), color .25s var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .flat-shelf .fs-more-cue:hover {
+    background: var(--cobalt);
+    color: #fff;
+  }
+}
+
+.flat-shelf:has(> .fs-detail.is-open) .fs-more-cue {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /* Detail sheet */
 .flat-shelf .fs-detail {
   position: fixed;
   inset: 0;
+  height: 100vh;
   height: 100dvh;
   z-index: 60;
   background: var(--sheet);
@@ -317,6 +366,7 @@
 
 .flat-shelf .fs-detail-first {
   position: relative;
+  min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -346,6 +396,7 @@
 
 .flat-shelf .fs-detail-grid {
   flex: 1;
+  min-height: 100vh;
   min-height: 100dvh;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -355,7 +406,7 @@
 }
 
 .flat-shelf .fs-detail-footer-slot {
-  border-top: 1px solid var(--rule);
+  min-width: 0;
 }
 
 .flat-shelf .fs-detail-col {
@@ -446,51 +497,108 @@
   transition: background-color .25s var(--ease), color .25s var(--ease);
 }
 
-.flat-shelf .fs-detail-reserve:hover {
-  background: var(--cobalt);
-  color: #fff;
+@media (hover: hover) and (pointer: fine) {
+  .flat-shelf .fs-detail-reserve:hover {
+    background: var(--cobalt);
+    color: #fff;
+  }
 }
 
 .flat-shelf .fs-detail-poster-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: auto;
+  min-width: 0;
 }
 
 .flat-shelf .fs-detail-poster {
-  height: min(100%, 78vh);
+  height: min(78vh, max(320px, calc(100vh - 190px)));
+  height: min(78dvh, max(320px, calc(100dvh - 190px)));
   width: auto;
   max-width: 100%;
   aspect-ratio: 474 / 900;
   display: block;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1100px) {
   .flat-shelf {
-    --H: min(60vw, 40svh);
+    --H: min(43vh, 29vw);
+    --H: min(43dvh, 29vw);
   }
 
   .flat-shelf .fs-tabs {
-    top: calc(50% - var(--H) / 2 - 70px);
+    top: calc(50% - var(--H) / 2 - 97px);
+    max-width: calc(100vw - 32px);
+    padding: 11px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
   }
 
-  .flat-shelf .fs-tab {
-    padding: 0 7px;
-    font-size: 9px;
-    letter-spacing: .07em;
+  .flat-shelf .fs-tabs::-webkit-scrollbar {
+    display: none;
   }
 
+  .flat-shelf .fs-tab-indicator {
+    top: 11px;
+  }
+
+  .flat-shelf .fs-tab::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 1100px) and (orientation: portrait) {
+  .flat-shelf {
+    --H: min(36vh, 42vw);
+    --H: min(36dvh, 42vw);
+  }
+
+  .flat-shelf .fs-tabs {
+    top: calc(50% - var(--H) / 2 - 89px);
+  }
+
+  .flat-shelf .fs-detail-grid {
+    grid-template-columns: 1fr;
+    padding: 84px clamp(20px, 5vw, 56px) 40px;
+    gap: 24px;
+    align-content: start;
+  }
+
+  .flat-shelf .fs-detail-poster-wrap {
+    order: -1;
+    height: auto;
+  }
+
+  .flat-shelf .fs-detail-poster {
+    height: 45vh;
+    height: 45dvh;
+    max-height: 45dvh;
+  }
+}
+
+@media (max-width: 900px) {
+  .flat-shelf .fs-foot {
+    bottom: 48px;
+  }
+
+  .flat-shelf .fs-more-cue {
+    bottom: 14px;
+  }
+}
+
+@media (max-width: 767px) {
   .flat-shelf .fs-mask-title {
     width: min(calc(100vw - 110px), 420px);
-  }
-
-  .flat-shelf .fs-title {
-    font-size: 24px;
-  }
-
-  .flat-shelf .fs-sub {
-    font-size: 9px;
   }
 
   .flat-shelf .fs-arrow-prev {
@@ -499,16 +607,6 @@
 
   .flat-shelf .fs-arrow-next {
     right: 6px;
-  }
-
-  .flat-shelf .fs-foot {
-    left: 16px;
-    right: 16px;
-    bottom: 18px;
-  }
-
-  .flat-shelf .fs-foot .lbl {
-    font-size: 9px;
   }
 
   .flat-shelf .fs-detail-topband {
@@ -520,13 +618,13 @@
   }
 
   .flat-shelf .fs-detail-close {
-    left: 16px;
+    left: max(16px, env(safe-area-inset-left));
     top: 21px;
   }
 
   .flat-shelf .fs-detail-grid {
     grid-template-columns: 1fr;
-    padding: 84px 22px 40px;
+    padding: 84px clamp(20px, 5vw, 32px) 40px;
     gap: 24px;
     align-content: start;
   }
@@ -537,11 +635,13 @@
   }
 
   .flat-shelf .fs-detail-poster {
-    height: 46svh;
+    height: 45vh;
+    height: 45dvh;
+    max-height: 45dvh;
   }
 
   .flat-shelf .fs-detail-title {
-    font-size: 42px;
+    font-size: clamp(34px, 8.5vw, 48px);
   }
 
   .flat-shelf .fs-detail-synopsis {
@@ -549,10 +649,94 @@
   }
 }
 
+@media (max-width: 600px) {
+  .flat-shelf {
+    --H: min(50vw, 31vh);
+    --H: min(50vw, 31dvh);
+  }
+
+  .flat-shelf .fs-tabs {
+    top: calc(50% - var(--H) / 2 - 68px);
+  }
+
+  .flat-shelf .fs-tab {
+    padding: 0 8px;
+    font-size: 9px;
+    letter-spacing: .07em;
+  }
+
+  .flat-shelf .fs-caption {
+    top: calc(50% + var(--H) / 2 + 22px);
+    gap: 6px;
+  }
+
+  .flat-shelf .fs-mask,
+  .flat-shelf .fs-mask-title {
+    width: min(calc(100vw - 108px), 420px);
+  }
+
+  .flat-shelf .fs-title {
+    font-size: clamp(22px, 6.2vw, 26px);
+  }
+
+  .flat-shelf .fs-sub {
+    font-size: 9px;
+  }
+
+  .flat-shelf .fs-arrow {
+    top: calc(50% + var(--H) / 2 + 24px);
+  }
+
+  .flat-shelf .fs-foot {
+    left: max(16px, env(safe-area-inset-left));
+    right: max(16px, env(safe-area-inset-right));
+    bottom: 44px;
+  }
+
+  .flat-shelf .fs-foot .lbl {
+    font-size: 9px;
+    letter-spacing: .07em;
+  }
+
+  .flat-shelf .fs-more-cue {
+    bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  .flat-shelf .fs-detail-reserve-mask {
+    width: 100%;
+  }
+
+  .flat-shelf .fs-detail-reserve {
+    width: 100%;
+  }
+
+  .flat-shelf .fs-detail-first.is-reserve-pinned .fs-detail-reserve-mask {
+    position: sticky;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 5;
+    background: var(--sheet);
+    padding-top: 8px;
+  }
+}
+
 @media (max-width: 375px) {
   .flat-shelf .fs-tab {
-    padding: 0 5px;
+    padding: 0 7px;
     font-size: 8.5px;
     letter-spacing: .05em;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .flat-shelf .fs-more-cue::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 44px;
+    min-height: 44px;
+    width: 100%;
+    height: 100%;
   }
 }

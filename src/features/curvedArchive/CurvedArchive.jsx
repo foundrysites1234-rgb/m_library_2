@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useSheetState } from '../../app/sheetContext.js';
+import { HeroFooterBlend } from '../../components/footer/HeroFooterBlend.jsx';
+import { SiteFooter } from '../../components/footer/SiteFooter.jsx';
 import { BRAND } from '../../content/brand.js';
 import { getBookById } from '../../content/books.js';
 import { useLocale } from '../../i18n/useLocale.js';
-import { SiteFooter } from '../../components/footer/SiteFooter.jsx';
 import { createCurvedArchive } from './engine/createCurvedArchive.js';
 import './curvedArchive.css';
 
 const MAJOR_YEARS = [1955, 1960, 1965, 1970, 1975, 1980, 1985, 1990];
+const PHONE_YEARS = new Set([1955, 1970, 1990]);
 const ALL_YEARS = Array.from({ length: 36 }, (_, i) => 1955 + i);
 
 const BLOB_DEFS = [
@@ -25,6 +28,7 @@ export function CurvedArchive() {
   const { locale, t } = useLocale();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { setDetailOpen } = useSheetState();
 
   const rootRef = useRef(null);
   const engineRef = useRef(null);
@@ -48,13 +52,15 @@ export function CurvedArchive() {
       onRequestCloseBook: () => {
         setSearchParams({});
       },
-      onSheetFirstOpen: (root, slot) => {
-        setFooterPortal({ root, slot });
+      onSheetOpenChange: (open, root, slot) => {
+        setDetailOpen(open);
+        setFooterPortal(open && root && slot ? { root, slot } : null);
       },
     });
     engineRef.current = engine;
 
     return () => {
+      setDetailOpen(false);
       setFooterPortal(null);
       engine.destroy();
       engineRef.current = null;
@@ -83,6 +89,15 @@ export function CurvedArchive() {
     e.preventDefault();
     const id = e.currentTarget.getAttribute('data-book-id') || '';
     navigate(`/contact?topic=reserve&book=${encodeURIComponent(id)}`);
+  };
+
+  const handleMoreClick = () => {
+    const reduced =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const footer = document.querySelector('.hero-shell > footer.site-footer');
+    if (footer) {
+      footer.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    }
   };
 
   const handleFooterNavigate = useCallback(
@@ -174,6 +189,7 @@ export function CurvedArchive() {
               yr === 1955 ? 'is-first' : '',
               yr === 1990 ? 'is-last' : '',
               idx % 2 === 1 ? 'is-alt' : '',
+              PHONE_YEARS.has(yr) ? '' : 'is-phone-hide',
             ]
               .filter(Boolean)
               .join(' ');
@@ -195,6 +211,15 @@ export function CurvedArchive() {
           <a href={BRAND.social.instagram} aria-label={t.nav.instagramLabel}>IG</a>
         </span>
       </footer>
+
+      <button
+        type="button"
+        className="box lbl ca-more-cue"
+        onClick={handleMoreClick}
+      >
+        <span>{t.shelf.more}</span>
+        <span aria-hidden="true">↓</span>
+      </button>
 
       <div
         className="ca-detail"
@@ -233,7 +258,7 @@ export function CurvedArchive() {
               <div className="ca-dline-mask">
                 <p className="ca-dline ca-detail-credit" data-ca-detail="credit" />
               </div>
-              <div className="ca-dline-mask">
+              <div className="ca-dline-mask ca-detail-reserve-mask">
                 <Link
                   ref={reserveRef}
                   to="/contact?topic=reserve"
@@ -276,6 +301,7 @@ export function CurvedArchive() {
           </div>
         </div>
 
+        <HeroFooterBlend variant="sheet" />
         <div className="ca-detail-footer-slot" />
       </div>
 

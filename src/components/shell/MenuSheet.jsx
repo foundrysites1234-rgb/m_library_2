@@ -57,6 +57,7 @@ export function MenuSheet({ open, onClose, anchorRef }) {
 
     if (open && !isOpenRef.current) {
       isOpenRef.current = true;
+      document.documentElement.classList.add('is-menu-locked');
       sheet.inert = false;
       sheet.classList.add('is-visible');
       sheet.setAttribute('aria-hidden', 'false');
@@ -104,6 +105,7 @@ export function MenuSheet({ open, onClose, anchorRef }) {
         sheet.classList.remove('is-visible');
         sheet.setAttribute('aria-hidden', 'true');
         sheet.inert = true;
+        document.documentElement.classList.remove('is-menu-locked');
         sheet.getAnimations().forEach((a) => a.cancel());
         if (anchorRef && anchorRef.current && document.contains(anchorRef.current)) {
           anchorRef.current.focus();
@@ -134,6 +136,12 @@ export function MenuSheet({ open, onClose, anchorRef }) {
 
     return () => clearTimeout(closeTimerRef.current);
   }, [open, anchorRef]);
+
+  useEffect(() => {
+    return () => {
+      document.documentElement.classList.remove('is-menu-locked');
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return undefined;
