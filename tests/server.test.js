@@ -21,10 +21,21 @@ test('production server SPA fallback, JSON error handling, and rate limits', asy
     const { port } = server.address();
     const baseUrl = `http://127.0.0.1:${port}`;
 
-    // Deep link returns SPA HTML 200
+    // Deep links to known routes return SPA HTML 200
     const deepRes = await fetch(`${baseUrl}/books/valley`);
     assert.equal(deepRes.status, 200);
     assert.equal(await deepRes.text(), htmlMarker);
+
+    const aboutRes = await fetch(`${baseUrl}/about`);
+    assert.equal(aboutRes.status, 200);
+    assert.equal(await aboutRes.text(), htmlMarker);
+
+    // Unknown SPA routes return real HTTP 404 with the HTML shell
+    for (const badPath of ['/nope', '/books/nope', '/books/valley/extra', '/journal/nope', '/legal/nope']) {
+      const notFoundRes = await fetch(`${baseUrl}${badPath}`);
+      assert.equal(notFoundRes.status, 404, `expected 404 for ${badPath}`);
+      assert.equal(await notFoundRes.text(), htmlMarker);
+    }
 
     // Unknown API route returns JSON 404
     const apiNopeRes = await fetch(`${baseUrl}/api/nope`);

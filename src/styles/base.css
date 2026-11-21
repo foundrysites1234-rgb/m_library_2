@@ -723,6 +723,117 @@ body.hero-active {
   cursor: not-allowed;
 }
 
+/* 404 page */
+.nf-slip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  max-width: 100%;
+  margin: 0 0 28px;
+  padding: 8px 12px;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.nf-slip code {
+  font: inherit;
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.nf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+}
+
+.nf-actions .journal-read-link {
+  margin-top: 0;
+}
+
+.nf-books {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.nf-books li {
+  border-top: 1px solid rgba(20, 20, 20, .18);
+}
+
+.nf-books li:last-child {
+  border-bottom: 1px solid rgba(20, 20, 20, .18);
+}
+
+.nf-book {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  grid-template-areas: "no title" "no meta";
+  column-gap: 20px;
+  row-gap: 4px;
+  padding: 16px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nf-book-no {
+  grid-area: no;
+  color: var(--cobalt);
+  align-self: start;
+  padding-top: 6px;
+}
+
+.nf-book-title {
+  grid-area: title;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: clamp(20px, 2.2vw, 26px);
+  line-height: 1.2;
+  letter-spacing: -.01em;
+  overflow-wrap: anywhere;
+  transition: color .25s var(--ease);
+}
+
+.nf-book-meta {
+  grid-area: meta;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.nf-book:hover .nf-book-title {
+  color: var(--cobalt);
+}
+
+.nf-book:focus-visible {
+  outline: 2px solid var(--cobalt);
+  outline-offset: 3px;
+}
+
+@media (max-width: 559px) {
+  .nf-book {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "no" "title" "meta";
+  }
+
+  .nf-book-no {
+    padding-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-book-title {
+    transition: none;
+  }
+}
+
 /* Journal list */
 .journal-list {
   display: grid;

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { handleContact } from './functions/api/contact.js';
 import { handleHealth } from './functions/api/health.js';
 import { handleNewsletter } from './functions/api/newsletter.js';
+import { isKnownRoute } from './functions/knownRoutes.js';
 import { repository } from './functions/repository/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -73,7 +74,7 @@ export async function createApp(options: { distDir?: string; isProduction?: bool
         return res.status(404).send('Build output not found.');
       }
       res.setHeader('Cache-Control', 'no-cache');
-      return res.sendFile(indexPath);
+      return res.status(isKnownRoute(req.path) ? 200 : 404).sendFile(indexPath);
     });
   }
 

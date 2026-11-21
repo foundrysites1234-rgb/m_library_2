@@ -7,11 +7,8 @@ import { MenuSheet } from '../components/shell/MenuSheet.jsx';
 import { PaperGrain } from '../components/shell/PaperGrain.jsx';
 import { SiteHeader } from '../components/shell/SiteHeader.jsx';
 import { useLocale } from '../i18n/useLocale.js';
+import { isHeroPath } from './sections.js';
 import { SheetStateContext } from './sheetContext.js';
-
-export function isHeroPath(pathname) {
-  return pathname === '/' || pathname === '/books' || pathname.startsWith('/books/');
-}
 
 export function ShellLayout({ pathname, children }) {
   const { t } = useLocale();

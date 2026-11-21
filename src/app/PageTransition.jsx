@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-
-function getSectionKey(pathname) {
-  if (pathname === '/') return 'home';
-  if (pathname === '/books' || pathname.startsWith('/books/')) return 'books';
-  return pathname;
-}
+import { getSectionKey } from './sections.js';
 
 export function PageTransition({ children }) {
   const location = useLocation();

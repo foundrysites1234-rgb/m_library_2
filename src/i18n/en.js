@@ -189,8 +189,13 @@ export default {
     },
   },
   notFound: {
-    heading: 'Page not found',
-    text: 'This page is not on the shelf.',
+    eyebrow: '404 · Call no. ML-404',
+    heading: 'Not on the shelf.',
+    text: 'We looked under every call number and this page is not filed anywhere. The address may be mistyped, or the page may have moved to another section of the archive.',
+    requested: 'Requested address',
     back: 'Back to the archive',
+    browse: 'Browse all books',
+    contact: 'Ask a librarian',
+    suggestTitle: 'Try these volumes',
   },
 };

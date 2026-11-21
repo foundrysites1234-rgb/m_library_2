@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useParams } from 'react-router-dom';
+import { getBookById } from '../content/books.js';
 import { AboutPage } from '../pages/AboutPage.jsx';
 import { ArticlePage } from '../pages/ArticlePage.jsx';
 import { BooksPage } from '../pages/BooksPage.jsx';
@@ -14,6 +15,11 @@ const ContactPage = lazy(() =>
   import('../pages/ContactPage.jsx').then((m) => ({ default: m.ContactPage }))
 );
 
+function BookRoute() {
+  const { id } = useParams();
+  return getBookById(id) ? <BooksPage /> : <NotFoundPage />;
+}
+
 export function AppRoutes() {
   return (
     <PageTransition>
@@ -22,7 +28,7 @@ export function AppRoutes() {
           <Routes location={displayLocation}>
             <Route path="/" element={<HomePage />} />
             <Route path="/books" element={<BooksPage />} />
-            <Route path="/books/:id" element={<BooksPage />} />
+            <Route path="/books/:id" element={<BookRoute />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/journal" element={<JournalPage />} />
             <Route path="/journal/:slug" element={<ArticlePage />} />
